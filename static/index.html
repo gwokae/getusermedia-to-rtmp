@@ -264,10 +264,30 @@
       }
 
       gg.addEventListener('click', function () {
-        const ws = new WebSocket('ws://127.0.0.1:5555');
-        ws.onmessage = (e) => {
-          console.log('eee', e);
-        };
+        navigator.mediaDevices.getDisplayMedia().then(function (stream) {
+          const ws = new WebSocket('ws://127.0.0.1:5555/live/hello');
+          video_show(stream); //only show locally, not remotely
+          // socket.emit('config_rtmpDestination', url);
+          // socket.emit('start', 'start');
+          mediaRecorder = new MediaRecorder(stream);
+
+          mediaRecorder.onstop = function (e) {
+            //document.getElementById('button_start').disabled=false;
+            // stream.stop();
+          };
+          ws.onmessage = (e) => {
+            console.log('eee', e);
+          };
+          ws.onopen = (e) => {
+            console.log('old', e);
+            mediaRecorder.start(0);
+            ws.send('help');
+          };
+          mediaRecorder.ondataavailable = function (e) {
+            console.log(e);
+            ws.send(e.data);
+          };
+        });
       });
     </script>
   </body>
